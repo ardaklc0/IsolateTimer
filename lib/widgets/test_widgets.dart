@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_background_service/flutter_background_service.dart';
+import 'package:isolate_timer/provider/slider_provider.dart';
 import 'package:isolate_timer/provider/time_provider.dart';
 import 'package:isolate_timer/widgets/slider_widgets.dart';
+import 'package:isolate_timer/widgets/test_countdown.dart';
 import 'package:provider/provider.dart';
 import 'dart:async';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -14,7 +16,7 @@ class TestApp extends StatefulWidget {
 }
 
 class _TestAppState extends State<TestApp> {
-  String text = "Stop Service";
+  String text = "Start Service";
   bool isRunning = false;
   String targetTime = "";
   String currentTimeDisplay = "";
@@ -27,102 +29,54 @@ class _TestAppState extends State<TestApp> {
 
     return MaterialApp(
       home: Scaffold(
-        appBar: AppBar(
-          title: const Text('Service App'),
-        ),
-        body: Column(
-          children: [
-            StreamBuilder<Map<String, dynamic>?>(
-              stream: FlutterBackgroundService().on('update'),
-              builder: (context, snapshot) {
-               if (!snapshot.hasData) {
-                return const Center(
-                  child: CircularProgressIndicator(),
-                );
-               }
-               final data = snapshot.data!;
-               String? device = data["device"];
-               DateTime? time = DateTime.tryParse(data["current_date"]);
-
-               if (isRunning) {
-                 minuteDifference = DateTime.parse(targetTime).difference(time!).inMinutes;
-                 secondDifference = DateTime.parse(targetTime).difference(time).inSeconds % 60;
-                 currentTimeDisplay = "${minuteDifference.toString().padLeft(2,"0")}:${secondDifference.toString().padLeft(2,"0")}";
-               }
-               return Column(
-                 children: [
-                   //Text(device ?? 'Unknown'),
-                   //Text("time: $time"),
-                   //Text("targetDateTime: $targetTime"),
-                   Text(
-                     currentTimeDisplay,
-                     style: const TextStyle(fontSize: 30),
-                   ),
-                 ],
-               );
-              },
-            ),
-            ElevatedButton(
-              child: const Text("Reset Timer"),
-              onPressed: () {
-                setState(() {
-                  isRunning = false;
-                  targetTime = "";
-                  currentTimeDisplay = "00:00";
-                });
-              },
-            ),
-            ElevatedButton(
-              child: const Text("Resume Timer"),
-              onPressed: () {
-                setState(() {
-
-                });
-              },
-            ),
-            ElevatedButton(
-              child: const Text("Start Timer"),
-              onPressed: () {
-                setState(() {
-                  isRunning = true;
-                  targetTime = DateTime.now().add(Duration(minutes: timerProvider.maxTimeInMinutes)).toString();
-                });
-              },
-            ),
-            ElevatedButton(
-              child: const Text("Foreground Mode"),
-              onPressed: () {
-                FlutterBackgroundService().invoke("setAsForeground");
-              },
-            ),
-            ElevatedButton(
-              child: const Text("Background Mode"),
-              onPressed: () {
-                FlutterBackgroundService().invoke("setAsBackground");
-              },
-            ),
-            ElevatedButton(
-              child: Text(text),
-              onPressed: () async {
-                final service = FlutterBackgroundService();
-                var isRunning = await service.isRunning();
-                if (isRunning) {
-                  service.invoke("stopService");
-                } else {
-                  service.startService();
-                }
-
-                if (!isRunning) {
-                  text = 'Stop Service';
-                } else {
-                  text = 'Start Service';
-                }
-                setState(() {});
-              },
-            ),
-            Text(timerProvider.maxTimeInMinutes.toString()),
-            TimeandRoundWidget()
-          ],
+        body: Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              ElevatedButton(
+                child: const Text("Foreground Mode"),
+                onPressed: () {
+                  FlutterBackgroundService().invoke("setAsForeground");
+                },
+              ),
+              ElevatedButton(
+                child: const Text("Background Mode"),
+                onPressed: () {
+                  FlutterBackgroundService().invoke("setAsBackground");
+                },
+              ),
+              ElevatedButton(
+                child: Text(text),
+                onPressed: () async {
+                  final service = FlutterBackgroundService();
+                  var isRunning = await service.isRunning();
+                  if (isRunning) {
+                    service.invoke("stopService");
+                  } else {
+                    service.startService();
+                  }
+          
+                  if (!isRunning) {
+                    text = 'Stop Service';
+                  } else {
+                    text = 'Start Service';
+                  }
+                  setState(() {});
+                },
+              ),
+          
+              ElevatedButton(onPressed: () {
+                Navigator.push(
+                    context,
+                    MaterialPageRoute(builder:
+                        (context) => const TestCountdown()
+                    )
+                  );
+                },
+                child: const Text('Go Timer')
+              ),
+            ],
+          ),
         ),
       ),
     );

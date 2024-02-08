@@ -41,7 +41,7 @@ Future<void> initializeService() async {
       // this will be executed when app is in foreground or background in separated isolate
       onStart: onStart,
       // auto start service
-      autoStart: true,
+      autoStart: false,
       isForegroundMode: true,
       notificationChannelId: 'my_foreground',
       initialNotificationTitle: 'AWESOME SERVICE',

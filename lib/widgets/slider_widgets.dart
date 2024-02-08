@@ -21,7 +21,6 @@ class TimeandRoundWidget extends StatelessWidget {
           updateValue: (newValue) {
             sliderProvider.updateWorkDurationSliderValue(newValue);
           },
-
           minText: 'min',
         ),
       ],

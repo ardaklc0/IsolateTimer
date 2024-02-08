@@ -4,7 +4,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 class SliderProvider with ChangeNotifier {
   late SharedPreferences _sharedPreferences;
 
-  static late int _studyDurationSliderValue;
+  static int _studyDurationSliderValue = 1;
 
 
   static int get studyDurationSliderValue => _studyDurationSliderValue;
