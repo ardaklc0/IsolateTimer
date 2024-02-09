@@ -4,6 +4,7 @@ import 'package:flutter_background_service/flutter_background_service.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:isolate_timer/provider/slider_provider.dart';
 import 'package:isolate_timer/provider/time_provider.dart';
+import 'package:isolate_timer/widgets/body_widgets.dart';
 import 'package:isolate_timer/widgets/slider_widgets.dart';
 import 'package:provider/provider.dart';
 
@@ -16,7 +17,7 @@ class _TestCountdownState extends State<TestCountdown> {
   bool isRunning = false;
   late double progress = 0;
   late double currentTimeInMinutes;
-  String targetTime = "";
+  //String targetTime = "";
   late String currentTimeDisplay;
   int minuteDifference = 0;
   int secondDifference = 0;
@@ -48,33 +49,27 @@ class _TestCountdownState extends State<TestCountdown> {
                 final data = snapshot.data!;
                 String? device = data["device"];
                 DateTime? time = DateTime.tryParse(data["current_date"]);
-                String currentTimeDisplay = "${SliderProvider.studyDurationSliderValue.toString().padLeft(2, "0")}:00";
-                if (isRunning) {
-                  minuteDifference = DateTime.parse(targetTime).difference(time!).inMinutes;
-                  secondDifference = DateTime.parse(targetTime).difference(time).inSeconds % 60;
+                // String currentTimeDisplay = "${SliderProvider.studyDurationSliderValue.toString().padLeft(2, "0")}:00";
+                if (timerProvider.isRunning) {
+                  //minuteDifference = DateTime.parse(targetTime).difference(time!).inMinutes;
+                  //secondDifference = DateTime.parse(targetTime).difference(time).inSeconds % 60;
+                  minuteDifference = timerProvider.targetTime.difference(time!).inMinutes;
+                  secondDifference = timerProvider.targetTime.difference(time).inSeconds % 60;
                   currentTimeDisplay = "${minuteDifference.toString().padLeft(2,"0")}:${secondDifference.toString().padLeft(2,"0")}";
                   currentTimeInMinutes = minuteDifference.toDouble() + (secondDifference.toDouble() / 60);
                   progress = 1 -
                       (timerProvider.maxTimeInMinutes != 0 ? currentTimeInMinutes / timerProvider.maxTimeInMinutes : 5);
+                  if (minuteDifference <= 0 && secondDifference <= 0) {
+                    timerProvider.toggleTimer();
+                    currentTimeDisplay = "${SliderProvider.studyDurationSliderValue.toString()}:00";
+                    progress = 0;
+                  }
                 }
-                flutterLocalNotificationsPlugin.show(
-                  888,
-                  'Remaining Time',
-                  'Countdown: $currentTimeDisplay',
-                  const NotificationDetails(
-                    android: AndroidNotificationDetails(
-                      'my_foreground',
-                      'MY FOREGROUND SERVICE',
-                      icon: 'ic_bg_service_small',
-                      ongoing: true,
-                    ),
-                  ),
-                );
                 return Column(
                   children: [
                     Text(device ?? 'Unknown'),
                     Text("time: $time"),
-                    Divider(),
+                    const Divider(),
                     //Text("targetDateTime: $targetTime"),
                     Column(
                       mainAxisAlignment: MainAxisAlignment.center,
@@ -95,7 +90,7 @@ class _TestCountdownState extends State<TestCountdown> {
                                 mainAxisAlignment: MainAxisAlignment.center,
                                 children: [
                                   Text(
-                                    currentTimeDisplay,
+                                    timerProvider.isRunning ? currentTimeDisplay : timerProvider.currentTimeDisplay,
                                     style: const TextStyle(fontSize: 30),
                                   ),
                                 ],
@@ -109,31 +104,31 @@ class _TestCountdownState extends State<TestCountdown> {
                 );
               },
             ),
-            Divider(),
-            ElevatedButton(
-              child: const Text("Reset Timer"),
-              onPressed: () {
-                setState(() {
-                  isRunning = false;
-                  targetTime = "";
-                  currentTimeDisplay = "${SliderProvider.studyDurationSliderValue.toString()}:00";
-                  progress = 0;
-                });
-
-              },
-            ),
-            ElevatedButton(
-              child: const Text("Start Timer"),
-              onPressed: () async {
-                setState(() {
-                  isRunning = true;
-                  targetTime = DateTime.now().add(Duration(minutes: timerProvider.maxTimeInMinutes)).toString();
-                });
-              },
-            ),
+            MediaButtons(),
+            //ElevatedButton(
+            //  child: const Text("Reset Timer"),
+            //  onPressed: () {
+            //    setState(() {
+            //      //timerProvider.toggleTimer();
+            //      //timerProvider.resetTimer();
+            //      //targetTime = "";
+            //      //currentTimeDisplay = "${SliderProvider.studyDurationSliderValue.toString()}:00";
+            //      //progress = 0;
+            //    });
+            //  },
+            //),
+            //ElevatedButton(
+            //  child: const Text("Start Timer"),
+            //  onPressed: () async {
+            //    setState(() {
+            //      timerProvider.toggleTimer();
+            //      timerProvider.setTargetTime();
+            //      //targetTime = DateTime.now().add(Duration(minutes: timerProvider.maxTimeInMinutes));
+            //    });
+            //  },
+            //),
             //Text(timerProvider.maxTimeInMinutes.toString()),
-            Divider(),
-            const TimeandRoundWidget(),
+            //const TimeandRoundWidget(),
           ],
         ),
       ),

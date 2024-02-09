@@ -72,7 +72,6 @@ Future<bool> onIosBackground(ServiceInstance service) async {
   await preferences.setStringList('log', log);
   return true;
 }
-
 @pragma('vm:entry-point')
 void onStart(ServiceInstance service) async {
   // Only available for flutter 3.0.0 and later
@@ -99,7 +98,7 @@ void onStart(ServiceInstance service) async {
   });
   // bring to foreground
   Timer.periodic(const Duration(seconds: 1), (timer) async {
-    """if (service is AndroidServiceInstance) {
+    if (service is AndroidServiceInstance) {
       if (await service.isForegroundService()) {
         /// OPTIONAL for use custom notification
         /// the notification id must be equals with AndroidConfiguration when you call configure() method.
@@ -122,8 +121,7 @@ void onStart(ServiceInstance service) async {
           content: "Updated at ${DateTime.now()}",
         );
       }
-    }""";
-
+    }
     /// you can see this log in logcat
     print('FLUTTER BACKGROUND SERVICE: ${DateTime.now()}');
     // test using external plugin
