@@ -11,6 +11,11 @@ class TimerProvider with ChangeNotifier {
   bool _isRunning = false;
   bool _isCancel = false;
 
+  int _minuteDifference = 0;
+  int _secondDifference = 0;
+  double _progress = 0.0;
+  int _currentTimeInMinutes = 0;
+
   DateTime _targetTime = DateTime.now();
 
 
@@ -19,7 +24,10 @@ class TimerProvider with ChangeNotifier {
   }
   bool get isRunning => _isRunning;
   bool get isCancel => _isCancel;
-  //int get currentTimeInSeconds => _currentTimeInMinutes;
+  int get minuteDifference => _minuteDifference;
+  int get secondDifference => _secondDifference;
+  double get progress => _progress;
+  int get currentTimeInSeconds => _currentTimeInMinutes;
   DateTime get currentDateTime => _currentDateTime;
   int get maxTimeInMinutes => SliderProvider.studyDurationSliderValue;
   //bool get isEqual => currentTimeInSeconds == maxTimeInMinutes;
@@ -38,6 +46,23 @@ class TimerProvider with ChangeNotifier {
     notifyListeners();
   }
 
+  void setMinuteDifference(DateTime time) {
+    _minuteDifference = targetTime.difference(time).inMinutes;
+    notifyListeners();
+  }
+  void setSecondDifference(DateTime time) {
+    _secondDifference = targetTime.difference(time).inSeconds % 60;
+    notifyListeners();
+  }
+  void setCurrentTimeInMinutes() {
+    _currentTimeInMinutes = _minuteDifference + _secondDifference ~/ 60;
+    notifyListeners();
+  }
+  void setProgress(double currentTimeInMinutes) {
+    _progress = 1 -
+        (maxTimeInMinutes != 0 ? currentTimeInSeconds / maxTimeInMinutes : 5);
+    notifyListeners();
+  }
 
 
   void toggleTimer() {

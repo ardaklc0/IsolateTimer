@@ -5,10 +5,16 @@ import 'package:provider/provider.dart';
 import '../pages/settings_page.dart';
 import '../provider/time_provider.dart';
 
-class MediaButtons extends StatelessWidget {
+class MediaButtons extends StatefulWidget {
   const MediaButtons({
     super.key,
   });
+
+  @override
+  State<MediaButtons> createState() => _MediaButtonsState();
+}
+
+class _MediaButtonsState extends State<MediaButtons> {
   @override
   Widget build(BuildContext context) {
     void navigateSettingsPage() {

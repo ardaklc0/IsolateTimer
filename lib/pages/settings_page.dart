@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../widgets/slider_widgets.dart';
+import '../widgets/sound_widgets.dart';
 
 
 
@@ -13,7 +14,7 @@ class SettingsPage extends StatelessWidget {
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           TimeandRoundWidget(),
-          //NotificationSoundWidget(),
+          NotificationSoundWidget(),
           //SettingsNotificationSwitch(),
           //AutoStartSwitch(),
         ],

@@ -2,11 +2,14 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_background_service/flutter_background_service.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+import 'package:isolate_timer/pages/audio_provider.dart';
 import 'package:isolate_timer/provider/slider_provider.dart';
 import 'package:isolate_timer/provider/time_provider.dart';
 import 'package:isolate_timer/widgets/body_widgets.dart';
 import 'package:isolate_timer/widgets/slider_widgets.dart';
 import 'package:provider/provider.dart';
+
+import '../pages/settings_page.dart';
 
 class TestCountdown extends StatefulWidget {
   const TestCountdown({super.key});
@@ -14,25 +17,32 @@ class TestCountdown extends StatefulWidget {
   State<TestCountdown> createState() => _TestCountdownState();
 }
 class _TestCountdownState extends State<TestCountdown> {
+  double progress = 0;
   bool isRunning = false;
-  late double progress = 0;
   late double currentTimeInMinutes;
-  //String targetTime = "";
   late String currentTimeDisplay;
   int minuteDifference = 0;
   int secondDifference = 0;
-  String text = "Start Timer";
+  late DateTime targetTime;
   FlutterBackgroundService service = FlutterBackgroundService();
   final FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin = FlutterLocalNotificationsPlugin();
+
   @override
   void initState() {
     service.startService();
-    currentTimeDisplay = "";
+    currentTimeDisplay = "${SliderProvider.studyDurationSliderValue.toString()}:00";
     super.initState();
   }
   @override
   Widget build(BuildContext context) {
     TimerProvider timerProvider = Provider.of<TimerProvider>(context);
+    SoundSelectionProvider soundSelectionProvider = Provider.of<SoundSelectionProvider>(context);
+    void navigateSettingsPage() {
+      Navigator.of(context).push(MaterialPageRoute(
+        builder: (context) => const SettingsPage(),
+      ));
+    }
+    final deviceHeight = MediaQuery.of(context).size.height;
     return Scaffold(
       body: Center(
         child: Column(
@@ -49,20 +59,19 @@ class _TestCountdownState extends State<TestCountdown> {
                 final data = snapshot.data!;
                 String? device = data["device"];
                 DateTime? time = DateTime.tryParse(data["current_date"]);
-                // String currentTimeDisplay = "${SliderProvider.studyDurationSliderValue.toString().padLeft(2, "0")}:00";
-                if (timerProvider.isRunning) {
-                  //minuteDifference = DateTime.parse(targetTime).difference(time!).inMinutes;
-                  //secondDifference = DateTime.parse(targetTime).difference(time).inSeconds % 60;
-                  minuteDifference = timerProvider.targetTime.difference(time!).inMinutes;
-                  secondDifference = timerProvider.targetTime.difference(time).inSeconds % 60;
+                if (isRunning) {
+                  minuteDifference = targetTime.difference(time!).inMinutes;
+                  secondDifference = targetTime.difference(time).inSeconds % 60;
+
                   currentTimeDisplay = "${minuteDifference.toString().padLeft(2,"0")}:${secondDifference.toString().padLeft(2,"0")}";
                   currentTimeInMinutes = minuteDifference.toDouble() + (secondDifference.toDouble() / 60);
-                  progress = 1 -
-                      (timerProvider.maxTimeInMinutes != 0 ? currentTimeInMinutes / timerProvider.maxTimeInMinutes : 5);
+                  progress = 1-(timerProvider.maxTimeInMinutes != 0 ? currentTimeInMinutes / timerProvider.maxTimeInMinutes : 5);
+
                   if (minuteDifference <= 0 && secondDifference <= 0) {
-                    timerProvider.toggleTimer();
                     currentTimeDisplay = "${SliderProvider.studyDurationSliderValue.toString()}:00";
                     progress = 0;
+                    timerProvider.toggleTimer();
+                    soundSelectionProvider.playSelectedAudio();
                   }
                 }
                 return Column(
@@ -70,7 +79,6 @@ class _TestCountdownState extends State<TestCountdown> {
                     Text(device ?? 'Unknown'),
                     Text("time: $time"),
                     const Divider(),
-                    //Text("targetDateTime: $targetTime"),
                     Column(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
@@ -90,7 +98,7 @@ class _TestCountdownState extends State<TestCountdown> {
                                 mainAxisAlignment: MainAxisAlignment.center,
                                 children: [
                                   Text(
-                                    timerProvider.isRunning ? currentTimeDisplay : timerProvider.currentTimeDisplay,
+                                    isRunning ? currentTimeDisplay : timerProvider.currentTimeDisplay,
                                     style: const TextStyle(fontSize: 30),
                                   ),
                                 ],
@@ -104,31 +112,62 @@ class _TestCountdownState extends State<TestCountdown> {
                 );
               },
             ),
-            MediaButtons(),
-            //ElevatedButton(
-            //  child: const Text("Reset Timer"),
-            //  onPressed: () {
-            //    setState(() {
-            //      //timerProvider.toggleTimer();
-            //      //timerProvider.resetTimer();
-            //      //targetTime = "";
-            //      //currentTimeDisplay = "${SliderProvider.studyDurationSliderValue.toString()}:00";
-            //      //progress = 0;
-            //    });
-            //  },
-            //),
-            //ElevatedButton(
-            //  child: const Text("Start Timer"),
-            //  onPressed: () async {
-            //    setState(() {
-            //      timerProvider.toggleTimer();
-            //      timerProvider.setTargetTime();
-            //      //targetTime = DateTime.now().add(Duration(minutes: timerProvider.maxTimeInMinutes));
-            //    });
-            //  },
-            //),
-            //Text(timerProvider.maxTimeInMinutes.toString()),
-            //const TimeandRoundWidget(),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              children: [
+                IconButton(
+                  onPressed: () {
+                    //if (timerProvider.isRunning) {
+                    //  timerProvider.toggleTimer();
+                    //  timerProvider.resetTimer();
+                    //}
+                    setState(() {
+                      isRunning = false;
+                      currentTimeDisplay = "${SliderProvider.studyDurationSliderValue.toString()}:00";
+                      progress = 0;
+                    });
+                    print("RESET");
+                  },
+                  icon: Icon(Icons.replay,
+                      size: deviceHeight * 0.04),
+                ),
+                IconButton(
+                  onPressed: () async {
+                    //timerProvider.toggleTimer();
+                    //timerProvider.setTargetTime();
+                    if (!isRunning) {
+                      setState(() {
+                        isRunning = true;
+                        targetTime = DateTime.now().add(Duration(minutes: timerProvider.maxTimeInMinutes));
+                      });
+                      print("START");
+                    } else {
+                      setState(() {
+                        if (timerProvider.maxTimeInMinutes * 60 - currentTimeInMinutes * 60 >= 10) {
+                          print("YOU CANNOT PAUSE");
+                        } else {
+                          isRunning = false;
+                          targetTime = DateTime.now().add(Duration(minutes: timerProvider.maxTimeInMinutes));
+                          progress = 0;
+                        }
+                      });
+                      print("PAUSE");
+                    }
+                  },
+                  icon: Icon(
+                    isRunning ? Icons.pause : Icons.play_arrow,
+                    size: deviceHeight * 0.04,
+                  ),
+                ),
+                IconButton(
+                  onPressed: !timerProvider.isRunning ? navigateSettingsPage : null,
+                  icon: Icon(
+                    Icons.settings,
+                    size: deviceHeight * 0.04,
+                  ),
+                )
+              ],
+            ),
           ],
         ),
       ),

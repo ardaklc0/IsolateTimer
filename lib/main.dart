@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:isolate_timer/pages/audio_provider.dart';
 import 'package:isolate_timer/provider/slider_provider.dart';
 import 'package:isolate_timer/provider/time_provider.dart';
 import 'dart:async';
@@ -14,6 +15,7 @@ Future<void> main() async {
   runApp(MultiProvider(providers: [
         ChangeNotifierProvider.value(value: sliderProvider),
         ChangeNotifierProvider(create: (context) => TimerProvider()),
+        ChangeNotifierProvider(create: (context) => SoundSelectionProvider()),
       ],
       child: const MyApp()
     )
