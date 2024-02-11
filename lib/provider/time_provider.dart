@@ -35,7 +35,7 @@ class TimerProvider with ChangeNotifier {
   DateTime get targetTime => _targetTime;
 
   String get currentTimeDisplay {
-    return "${SliderProvider.studyDurationSliderValue.toString()}:00";
+    return "${SliderProvider.studyDurationSliderValue.toString().padLeft(2, "0")}:00";
   }
   void setTargetTime() {
     _targetTime = DateTime.now().add(Duration(minutes: maxTimeInMinutes));
