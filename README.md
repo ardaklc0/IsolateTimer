@@ -1,5 +1,3 @@
-Certainly! Here's a basic template for your GitHub README.md in code form:
-
 ```markdown
 # Flutter Background Timer
 
